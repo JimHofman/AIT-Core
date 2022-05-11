@@ -59,8 +59,8 @@ class ObjectCache(object):
 
     @property
     def dirty(self):
-        """True if the pickle cache needs to be updated, False to use pickle binary"""
-        return self.check_yaml_timestamps(self.filename, self.cachename)
+        """True if the pickle cache needs to be regenerated, False to use current pickle binary"""
+        return check_yaml_timestamps(self.filename, self.cachename)
 
     @property
     def filename(self):
@@ -73,51 +73,6 @@ class ObjectCache(object):
         log.info(msg, self.filename, self.cachename)
         with open(self.cachename, "wb") as output:
             pickle.dump(self._dict, output, -1)
-
-    def check_yaml_timestamps(self, yaml_file_name, cache_name):
-        """
-        Checks YAML configuration file timestamp and any 'included' YAML configuration file
-        timestamps against the pickle cache file.
-        The term 'dirty' means that a yaml file has a more recent timestamp than the pickle
-        cache file.  If a file is found to be dirty the response will indicate that a new
-        pickle cache file must be generated.  As soon as one file is found to be 'dirty'
-        the flag indicating 'dirty' will be returned.  If a file_name is found to be 'clean'
-        the pickle binary will be loaded.
-
-        param yaml_file_name: str
-            Name of the yaml configuration file to be tested
-        param cache_name: str
-            Filename with path to the cached pickle file for this config file.
-
-        return: boolean
-            True/False indicating 'dirty' (update pickle cache)
-
-        """
-
-        # If no pickle cache exists return True to make a new one.
-        if not os.path.exists(cache_name):
-            log.debug(f'No pickle cache exists, make a new one')
-            return True
-        # Has the yaml config file has been modified since the creation of the pickle cache
-        if os.path.getmtime(yaml_file_name) > os.path.getmtime(cache_name):
-            log.debug(f'{yaml_file_name} modified - make a new pickle cash')
-            return True
-        # Get the directory of the yaml config file to be parsed
-        dir_name = os.path.dirname(yaml_file_name)
-        # Open the yaml config file to look for '!includes' to be tested on the next iteration
-        with open(yaml_file_name, "r") as file:
-            try:
-                for line in file:
-                    if not line.strip().startswith("#") and "!include" in line:
-                        check = self.check_yaml_timestamps(
-                            os.path.join(dir_name, line.strip().split(" ")[2]), cache_name)
-                        if check:
-                            return True
-            except RecursionError as e:   # TODO Python 3.7 does not catch this error.
-                print(f'ERROR: {e}: Infinite loop: check that yaml config files are not looping '
-                      f'back and forth to one another thought the "!include" statements.')
-        log.debug('Load pickle binary.')
-        return False
 
     def load(self):
         """Loads the Python object
@@ -143,6 +98,55 @@ if sys.platform == "win32":
 else:
     # On most other platforms the best timer is time.time
     timer = time.time
+
+
+def check_yaml_timestamps(yaml_file_name, cache_name):
+    """
+    Checks YAML configuration file timestamp and any 'included' YAML configuration file's
+    timestamp against the pickle cache file timestamp.
+    The term 'dirty' means that a yaml config file has a more recent timestamp than the
+    pickle cache file.  If a pickle cache file is found to be 'dirty' (return true) the
+    pickle cache file is not up-to-date, and a new pickle cache file must be generated.
+    If the cache file in not 'dirty' (return false) the existing pickle binary will
+    be loaded.
+
+    param: yaml_file_name: str
+        Name of the yaml configuration file to be tested
+    param: cache_name: str
+        Filename with path to the cached pickle file for this config file.
+
+    return: boolean
+        True:
+            Indicates 'dirty' pickle cache: i.e. the file is not current, generate new binary
+        False
+            Load current cache file
+
+    """
+    # If no pickle cache exists return True to make a new one.
+    if not os.path.exists(cache_name):
+        log.debug(f'No pickle cache exists, make a new one')
+        return True
+    # Has the yaml config file has been modified since the creation of the pickle cache
+    if os.path.getmtime(yaml_file_name) > os.path.getmtime(cache_name):
+        log.debug(f'{yaml_file_name} modified - make a new pickle cash')
+        print('make new pickle binary.')
+        return True
+    # Get the directory of the yaml config file to be parsed
+    dir_name = os.path.dirname(yaml_file_name)
+    # Open the yaml config file to look for '!includes' to be tested on the next iteration
+    with open(yaml_file_name, "r") as file:
+        try:
+            for line in file:
+                if not line.strip().startswith("#") and "!include" in line:
+                    check = check_yaml_timestamps(
+                        os.path.join(dir_name, line.strip().split(" ")[2]), cache_name)
+                    if check:
+                        return True
+        except RecursionError as e:   # TODO Python 3.7 does not catch this error.
+            print(f'ERROR: {e}: Infinite loop: check that yaml config files are not looping '
+                  f'back and forth to one another thought the "!include" statements.')
+    log.debug('Load pickle binary.')
+    return False
 
 
 def __init_extensions__(modname, modsyms):  # noqa

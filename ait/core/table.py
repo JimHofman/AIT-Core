@@ -455,10 +455,10 @@ class FSWTabDictCache(object):
         self.pcklname = os.path.splitext(filename)[0] + ".pkl"
         self.fswtabdict = None
 
+    @property
     def dirty(self):
-        return not os.path.exists(self.pcklname) or os.path.getmtime(
-            self.filename
-        ) > os.path.getmtime(self.pcklname)
+        """True if the pickle cache needs to be regenerated, False to use current pickle binary"""
+        return util.check_yaml_timestamps(self.filename, self.cachename)
 
     def load(self):
         if self.fswtabdict is None:
