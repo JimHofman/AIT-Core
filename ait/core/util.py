@@ -85,6 +85,7 @@ class ObjectCache(object):
             if self.dirty:
                 self._dict = self._loader(self.filename)
                 self.cache()
+                log.info(f'New pickle file: {self.filename.split(".")[0]}.pkl loaded')
             else:
                 with open(self.cachename, "rb") as stream:
                     self._dict = pickle.load(stream)
@@ -128,8 +129,7 @@ def check_yaml_timestamps(yaml_file_name, cache_name):
         return True
     # Has the yaml config file has been modified since the creation of the pickle cache
     if os.path.getmtime(yaml_file_name) > os.path.getmtime(cache_name):
-        log.debug(f'{yaml_file_name} modified - make a new pickle cash')
-        print('make new pickle binary.')
+        log.info(f'{yaml_file_name} modified - make a new binary pickle cache file.')
         return True
     # Get the directory of the yaml config file to be parsed
     dir_name = os.path.dirname(yaml_file_name)
@@ -145,7 +145,6 @@ def check_yaml_timestamps(yaml_file_name, cache_name):
         except RecursionError as e:   # TODO Python 3.7 does not catch this error.
             print(f'ERROR: {e}: Infinite loop: check that yaml config files are not looping '
                   f'back and forth to one another thought the "!include" statements.')
-    log.debug('Load pickle binary.')
     return False
 
 

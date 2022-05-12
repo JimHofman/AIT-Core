@@ -452,7 +452,7 @@ class FSWTabDictCache(object):
             filename = ait.config.get("table.filename")
 
         self.filename = filename
-        self.pcklname = os.path.splitext(filename)[0] + ".pkl"
+        self.cachename = os.path.splitext(filename)[0] + ".pkl"
         self.fswtabdict = None
 
     @property
@@ -462,19 +462,20 @@ class FSWTabDictCache(object):
 
     def load(self):
         if self.fswtabdict is None:
-            if self.dirty():
+            if self.dirty:
                 self.fswtabdict = FSWTabDict(self.filename)
-                self.update()
+                self.cache()
+                log.info(f'New pickle file: {self.filename.split(".")[0]}.pkl loaded')
             else:
-                with open(self.pcklname, "rb") as stream:
+                with open(self.cachename, "rb") as stream:
                     self.fswtabdict = pickle.load(stream)
 
         return self.fswtabdict
 
-    def update(self):
+    def cache(self):
         msg = "Saving updates from more recent '%s' to '%s'"
-        log.info(msg, self.filename, self.pcklname)
-        with open(self.pcklname, "wb") as output:
+        log.info(msg, self.filename, self.cachename)
+        with open(self.cachename, "wb") as output:
             pickle.dump(self.fswtabdict, output, -1)
 
 
@@ -483,6 +484,7 @@ _DefaultFSWTabDictCache = FSWTabDictCache()
 
 def getDefaultFSWTabDict():  # noqa: N802
     fswtabdict = None
+    filename = None
     try:
         filename = _DefaultFSWTabDictCache.filename
         fswtabdict = _DefaultFSWTabDictCache.load()

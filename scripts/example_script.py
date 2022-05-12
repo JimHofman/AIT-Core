@@ -7,9 +7,13 @@ Check out the AIT API Documentation for a more detailed look at the scripting AP
 '''
 
 from ait.core.api import Instrument
+import ait.core.table as table
 
 
 inst = Instrument()
+
+cache = table.FSWTabDictCache()
+cache.load()
 
 # Send a command
 inst.cmd.send('NO_OP')
