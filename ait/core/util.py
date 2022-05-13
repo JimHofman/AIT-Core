@@ -35,7 +35,8 @@ from ait.core import log
 
 class ObjectCache(object):
     def __init__(self, filename, loader):
-        """Creates a new ObjectCache
+        """
+        Creates a new ObjectCache
 
         Caches the Python object returned by loader(filename), using
         Python's pickle object serialization mechanism.  An ObjectCache
@@ -68,9 +69,10 @@ class ObjectCache(object):
         return self._filename
 
     def load(self):
-        """Loads the Python object
+        """
+        Loads the Python object
 
-        Loads the Python object, either via loader(filename) or the
+        Loads the Python object, either via loader (filename) or the
         pickled cache file, whichever was modified most recently.
         """
 
@@ -163,7 +165,8 @@ def update_cache(yaml_file_name, cache_file_name, object_to_serialize):
 
 
 def __init_extensions__(modname, modsyms):  # noqa
-    """Initializes a module (given its name and :func:`globals()` symbol
+    """
+    Initializes a module (given its name and :func:`globals()` symbol
     table) for AIT extensions.
 
     For every Python class defined in the given module, a
@@ -185,7 +188,8 @@ def __init_extensions__(modname, modsyms):  # noqa
     """
 
     def createFunc(cls, extname):  # noqa
-        """Creates and returns a new ``createXXX()`` function to instantiate
+        """
+        Creates and returns a new ``createXXX()`` function to instantiate
         either the given class by class object (*cls*) or extension
         class name (*extname*).
 
@@ -231,7 +235,8 @@ def __init_extensions__(modname, modsyms):  # noqa
 
 
 def __load_functions__(symtbl):  # noqa
-    """Loads all Python functions from the module specified in the
+    """
+    Loads all Python functions from the module specified in the
     ``functions`` configuration parameter (in config.yaml) into the given
     symbol table (Python dictionary).
     """
@@ -251,7 +256,8 @@ def __load_functions__(symtbl):  # noqa
 
 
 def crc32File(filename, skip=0):  # noqa
-    """Computes the CRC-32 of the contents of filename, optionally
+    """
+    Computes the CRC-32 of the contents of filename, optionally
     skipping a certain number of bytes at the beginning of the file.
     """
     with open(filename, "rb") as stream:
@@ -267,7 +273,8 @@ def endianSwapU16(bytes):  # noqa
 
 
 def setDictDefaults(d, defaults):  # noqa
-    """Sets all defaults for the given dictionary to those contained in a
+    """
+    Sets all defaults for the given dictionary to those contained in a
     second defaults dictionary.  This convenience method calls:
 
       d.setdefault(key, value)
@@ -281,7 +288,8 @@ def setDictDefaults(d, defaults):  # noqa
 
 
 def getDefaultDict(modname, config_key, loader, reload=False, filename=None):  # noqa
-    """Returns default AIT dictonary for modname
+    """
+    Returns default AIT dictonary for modname
 
     This helper function encapulates the core logic necessary to
     (re)load, cache (via util.ObjectCache), and return the default
@@ -328,7 +336,8 @@ def toBCD(n):  # noqa
 
 
 def toFloat(str, default=None):  # noqa
-    """toFloat(str[, default]) -> float | default
+    """
+    toFloat(str[, default]) -> float | default
 
     Converts the given string to a floating-point value.  If the
     string could not be converted, default (None) is returned.
@@ -359,7 +368,8 @@ def toFloat(str, default=None):  # noqa
 
 
 def toNumber(str, default=None):  # noqa
-    """toNumber(str[, default]) -> integer | float | default
+    """
+    toNumber(str[, default]) -> integer | float | default
 
     Converts the given string to a numeric value.  The string may be a
     hexadecimal, integer, or floating number.  If string could not be
