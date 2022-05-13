@@ -464,19 +464,13 @@ class FSWTabDictCache(object):
         if self.fswtabdict is None:
             if self.dirty:
                 self.fswtabdict = FSWTabDict(self.filename)
-                self.cache()
+                util.update_cache(self.filename, self.cachename, self.fswtabdict)
                 log.info(f'New pickle file: {self.filename.split(".")[0]}.pkl loaded')
             else:
                 with open(self.cachename, "rb") as stream:
                     self.fswtabdict = pickle.load(stream)
 
         return self.fswtabdict
-
-    def cache(self):
-        msg = "Saving updates from more recent '%s' to '%s'"
-        log.info(msg, self.filename, self.cachename)
-        with open(self.cachename, "wb") as output:
-            pickle.dump(self.fswtabdict, output, -1)
 
 
 _DefaultFSWTabDictCache = FSWTabDictCache()

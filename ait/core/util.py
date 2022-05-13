@@ -67,13 +67,6 @@ class ObjectCache(object):
         """The filename to cache via loader(filename)"""
         return self._filename
 
-    def cache(self):
-        """Caches the result of loader(filename) to cachename."""
-        msg = 'Saving updates from more recent "%s" to "%s"'
-        log.info(msg, self.filename, self.cachename)
-        with open(self.cachename, "wb") as output:
-            pickle.dump(self._dict, output, -1)
-
     def load(self):
         """Loads the Python object
 
@@ -84,7 +77,7 @@ class ObjectCache(object):
         if self._dict is None:
             if self.dirty:
                 self._dict = self._loader(self.filename)
-                self.cache()
+                update_cache(self.filename, self.cachename, self._dict)
                 log.info(f'New pickle file: {self.filename.split(".")[0]}.pkl loaded')
             else:
                 with open(self.cachename, "rb") as stream:
@@ -146,6 +139,27 @@ def check_yaml_timestamps(yaml_file_name, cache_name):
             print(f'ERROR: {e}: Infinite loop: check that yaml config files are not looping '
                   f'back and forth to one another thought the "!include" statements.')
     return False
+
+
+def update_cache(yaml_file_name, cache_file_name, object_to_serialize):
+    """
+    Caches the result of loader (yaml_file_name) to pickle binary (cache_file_name), if
+    the yaml config file has been modified since the last pickle cache was created, i.e.
+    (the binary pickle cache is declared to be 'dirty' in 'check_yaml_timestamps()').
+
+    param: yaml_file_name: str
+        Name of the yaml configuration file to be serialized ('pickled')
+    param: cache_file_name: str
+        File name with path to the new serialized cached pickle file for this config file.:
+    param: object_to_serialize: object
+        Object to serialize ('pickle') e.g. instance of 'ait.core.cmd.CmdDict'
+
+    """
+
+    msg = f'Saving updates from more recent {yaml_file_name} to {cache_file_name}..'
+    log.info(msg)
+    with open(cache_file_name, "wb") as output:
+        pickle.dump(object_to_serialize, output, -1)
 
 
 def __init_extensions__(modname, modsyms):  # noqa
